@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+startup() {
+    echo '
+   _____         .__          ________                       
+  /  _  \   ____ |__|         \______ \   ______  _  ______  
+ /  /_\  \ /    \|  |  ______  |    |  \ /  _ \ \/ \/ /    \ 
+/    |    \   |  \  | /_____/  |    `   (  <_> )     /   |  \
+\____|__  /___|  /__|         /_______  /\____/ \/\_/|___|  /
+        \/     \/                     \/                  \/ 
+        '
+}
+
+# usage() {
+#     echo "Usage: $0 [options] <anime_name> -e <episode_number>"
+#     echo "Options:"
+#     echo "  -e <episode_number>  Specify the episode number to download."
+#     echo "  -q <quality>       Specify the video quality (e.g., 720p, 1080p)."
+#     echo "Example:"
+#     echo "  $0 -q 720p One Piece -e 1015"
+#     exit 1
+# }
+
+search() {
+    echo -n "Search Anime: "
+    read -r anime_name
+    download=99
+    while test ${download} -eq 99
+    do
+    echo -n "Download? ('y' or 'n'): "
+    read -r download
+    download=$(echo ${download} | tr [A-Z] [a-z])
+        case ${download} in
+            y)
+                download=1
+                ;;
+            n)
+                download=0
+                ;;
+            yes)
+                download=1
+                ;;
+            no)
+                download=0
+                ;;
+            *)
+                echo "${download} is not a valid argument"
+                download=99
+                ;;
+        esac
+    done
+
+    sub=99
+    while test ${sub} -eq 99
+    do
+    echo -n "Sub? ('y' or 'n'): "
+    read -r sub
+    download=$(echo ${sub} | tr [A-Z] [a-z])
+        case ${sub} in
+            y | yes)
+                sub=1
+                ;;
+            n | no)
+                sub=0
+                ;;
+            *)
+                echo "${sub} is not a valid argument"
+                sub=99
+                ;;
+        esac
+    done
+
+    if test ${sub} -eq 1
+    then
+        anime_name=$(echo ${anime_name} | sed -E 's/ /%20/g')
+        anime_search=${anime_base}search?keyword=${anime_name}
+        curl -s ${anime_search} | grep -E 'title' | grep -E 'href' | grep -E "     <h3 class=\"film-name\"><a href=" | sed -E 's/^ *.*title=\"//g' | sed -E 's/\" *class.*$//g'
+        echo ${anime_base}
+    else
+        anime_name=$(echo ${anime_name} | sed -E 's/ /%20/g')
+        anime_base=${anime_base}"dub&cty=ALL&query="${anime_name}
+        echo ${anime_base}
+    fi
+
+    
+}
+
+startup
+
+# https://kaido.to/search?keyword=rascal+does+not+dream
+
+anime_base="https://kaido.to/"
+
+search
+
+
+# ➜  ani-down cat testing.txt | grep -E "senpai" | grep -v "^ *<a" | sed -E 's/^ *.*title=\"//g' | sed -E 's/\" *class.*$//g'
+# Seishun Buta Yarou wa Bunny Girl Senpai no Yume wo Minai Picture Drama
+# Rascal Does Not Dream of Bunny Girl Senpai
