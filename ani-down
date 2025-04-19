@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 
 startup() {
-    echo '
+    clear
+    echo -e "${CYAN}═════════════════════════════════════════════════════════════
    _____         .__          ________                       
   /  _  \   ____ |__|         \______ \   ______  _  ______  
  /  /_\  \ /    \|  |  ______  |    |  \ /  _ \ \/ \/ /    \ 
-/    |    \   |  \  | /_____/  |    `   (  <_> )     /   |  \
-\____|__  /___|  /__|         /_______  /\____/ \/\_/|___|  /
-        \/     \/                     \/                  \/ 
-        '
+/    |    \   |  \  | /_____/  |    \`   (  <_> )     /   |  \\
+\____|__  /___|  /__|         /_______  /\\____/ \\/\\_/|___|  /
+        \\/     \\/                     \\/                  \\/ 
+═════════════════════════════════════════════════════════════${RESET}"
 }
 
 download_check () {
@@ -56,11 +57,16 @@ sub_check () {
 }
 
 search () {
-    echo | fzf --prompt="Search Anime: "
+    startup
+    echo
+    echo -n -e "${BOLD}${BLUE}Search Anime: ${RESET}"
     read -r anime_name
     anime_name=$(echo ${anime_name} | sed -E 's/ /%20/g')
     page_number=1
     all_results=""
+
+    clear
+    echo -e "${BOLD}${CYAN}Searching for anime ...${RESET}"
 
     while true
     do
@@ -69,7 +75,6 @@ search () {
         content=$(curl -s ${anime_search} | grep -E 'title' | grep -E 'href' | grep -E "     <h3 class=\"film-name\"><a href=" | sed -E 's/^ *.*title=\"//g' | sed -E 's/\" *class.*$//g')
         
         if [[ -z "$content" ]]; then
-            echo "No more results found."
             break
         fi
         all_results="${all_results}${content}\n"
@@ -84,7 +89,7 @@ search () {
         exit 1
     fi
 
-    selected=$(echo -e "$all_results" | fzf --prompt="Select anime: ")
+    selected=$(echo -e "$all_results" | fzf --layout=reverse --prompt="Select anime: ")
 
     if [[ -z "$selected" ]]
     then
@@ -93,15 +98,19 @@ search () {
     fi
 }
 
-startup
-
 # https://kaido.to/search?keyword=rascal+does+not+dream
 
 anime_base="https://kaido.to/"
+CYAN='\033[1;36m'
+RESET='\033[0m'
+BOLD='\033[1m'
+BLACK='\033[30m'
+WHITE='\033[37m'
+BLUE='\033[34m'
 
 search
 
-
+clear
 # ➜  ani-down cat testing.txt | grep -E "senpai" | grep -v "^ *<a" | sed -E 's/^ *.*title=\"//g' | sed -E 's/\" *class.*$//g'
 # Seishun Buta Yarou wa Bunny Girl Senpai no Yume wo Minai Picture Drama
 # Rascal Does Not Dream of Bunny Girl Senpai
