@@ -11,78 +11,86 @@ startup() {
         '
 }
 
-# usage() {
-#     echo "Usage: $0 [options] <anime_name> -e <episode_number>"
-#     echo "Options:"
-#     echo "  -e <episode_number>  Specify the episode number to download."
-#     echo "  -q <quality>       Specify the video quality (e.g., 720p, 1080p)."
-#     echo "Example:"
-#     echo "  $0 -q 720p One Piece -e 1015"
-#     exit 1
-# }
-
-search() {
-    echo -n "Search Anime: "
-    read -r anime_name
-    download=99
-    while test ${download} -eq 99
+download_check () {
+    while true
     do
-    echo -n "Download? ('y' or 'n'): "
-    read -r download
-    download=$(echo ${download} | tr [A-Z] [a-z])
+        echo -n "Download? ('y' or 'n'): "
+        read -r download
+        download=$(echo ${download} | tr [A-Z] [a-z])
         case ${download} in
-            y)
+            y | yes)
                 download=1
+                break
                 ;;
-            n)
+            n | no)
                 download=0
-                ;;
-            yes)
-                download=1
-                ;;
-            no)
-                download=0
+                break
                 ;;
             *)
-                echo "${download} is not a valid argument"
-                download=99
+                echo "Invalid input. Please enter 'y' or 'n'."
                 ;;
         esac
     done
+}
 
-    sub=99
-    while test ${sub} -eq 99
+sub_check () {
+    while true
     do
-    echo -n "Sub? ('y' or 'n'): "
-    read -r sub
-    download=$(echo ${sub} | tr [A-Z] [a-z])
+        echo -n "Sub? ('y' or 'n'): "
+        read -r sub
+        download=$(echo ${sub} | tr [A-Z] [a-z])
         case ${sub} in
             y | yes)
                 sub=1
+                break
                 ;;
             n | no)
                 sub=0
+                break
                 ;;
             *)
-                echo "${sub} is not a valid argument"
-                sub=99
+                echo "Invalid input. Please enter 'y' or 'n'."
                 ;;
         esac
     done
+}
 
-    if test ${sub} -eq 1
+search () {
+    echo | fzf --prompt="Search Anime: "
+    read -r anime_name
+    anime_name=$(echo ${anime_name} | sed -E 's/ /%20/g')
+    page_number=1
+    all_results=""
+
+    while true
+    do
+        anime_search=${anime_base}search?keyword=${anime_name}\&page=${page_number}
+
+        content=$(curl -s ${anime_search} | grep -E 'title' | grep -E 'href' | grep -E "     <h3 class=\"film-name\"><a href=" | sed -E 's/^ *.*title=\"//g' | sed -E 's/\" *class.*$//g')
+        
+        if [[ -z "$content" ]]; then
+            echo "No more results found."
+            break
+        fi
+        all_results="${all_results}${content}\n"
+        page_number=$((page_number + 1))
+    done
+
+    all_results=$(echo -e "$all_results" | sed 's/ *$//g')
+
+    if [[ -z "$all_results" ]]
     then
-        anime_name=$(echo ${anime_name} | sed -E 's/ /%20/g')
-        anime_search=${anime_base}search?keyword=${anime_name}
-        curl -s ${anime_search} | grep -E 'title' | grep -E 'href' | grep -E "     <h3 class=\"film-name\"><a href=" | sed -E 's/^ *.*title=\"//g' | sed -E 's/\" *class.*$//g'
-        echo ${anime_base}
-    else
-        anime_name=$(echo ${anime_name} | sed -E 's/ /%20/g')
-        anime_base=${anime_base}"dub&cty=ALL&query="${anime_name}
-        echo ${anime_base}
+        echo "No anime found for your search."
+        exit 1
     fi
 
-    
+    selected=$(echo -e "$all_results" | fzf --prompt="Select anime: ")
+
+    if [[ -z "$selected" ]]
+    then
+        echo "No selection made."
+        exit 1
+    fi
 }
 
 startup
