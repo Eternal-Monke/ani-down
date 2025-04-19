@@ -10,9 +10,10 @@ startup() {
 \____|__  /___|  /__|         /_______  /\\____/ \\/\\_/|___|  /
         \\/     \\/                     \\/                  \\/ 
 ═════════════════════════════════════════════════════════════${RESET}"
+    action
 }
 
-download_check () {
+download_check() {
     while true
     do
         echo -n "Download? ('y' or 'n'): "
@@ -34,7 +35,7 @@ download_check () {
     done
 }
 
-sub_check () {
+sub_check() {
     while true
     do
         echo -n "Sub? ('y' or 'n'): "
@@ -56,8 +57,66 @@ sub_check () {
     done
 }
 
-search () {
-    startup
+action() {
+    echo
+    option=$(echo -n -e "Search info about anime\nSearch for anime character\nStream anime\nDownload anime\nExit" | fzf --layout=reverse --prompt="Enter Option ('h' for help): ")
+    case "$option" in
+        "Search info about anime")
+            anime_info
+            ;;
+        "Search for anime character")
+            search_character
+            ;;
+        "Stream anime")
+            stream_anime
+            ;;
+        "Download anime")
+            download_anime
+            ;;
+        "Exit")
+            echo "Goodbye!"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $option"
+            ;;
+    esac
+    exit 0
+}
+
+anime_info() {
+    clear
+    echo -n -e "${BOLD}${BLUE}Enter anime name: ${RESET}"
+    read -r anime_name
+    anime_name=$(echo ${anime_name} | sed -E 's/ /+/g')
+    result_number=0
+
+    while true
+    do
+        anime_search="${MAL_base}anime.php?q=${anime_name}&cat=anime&show=${result_number}"
+
+        links=$(curl -s "${anime_search}" | grep -E "      <a class=\"hoverinfo_trigger\" href=\"" | sed -E 's/^.*href=\"//g' | sed -E 's/\" id=\".*$//g')
+        content=$(echo "${links}" | sed -E 's#^.*[0-9]+/##g')
+
+        options=$(echo -e "${content}\nNext page")
+        selected=$(echo -e "${options}" | fzf --layout=reverse --prompt="Pick your anime: ")
+
+
+        if ! [[ "$selected" == "Next page" ]]
+        then
+            break
+        fi
+
+        result_number=$((result_number + 50))
+    done
+
+    echo "You selected: ${selected}"
+    chosen_anime_link=$(echo "${links}" | grep -E "${selected}")
+    echo "The link for that is: ${}"
+
+}
+
+search() {
     echo
     echo -n -e "${BOLD}${BLUE}Search Anime: ${RESET}"
     read -r anime_name
@@ -101,6 +160,7 @@ search () {
 # https://kaido.to/search?keyword=rascal+does+not+dream
 
 anime_base="https://kaido.to/"
+MAL_base="https://myanimelist.net/"
 CYAN='\033[1;36m'
 RESET='\033[0m'
 BOLD='\033[1m'
@@ -108,7 +168,7 @@ BLACK='\033[30m'
 WHITE='\033[37m'
 BLUE='\033[34m'
 
-search
+startup
 
 clear
 # ➜  ani-down cat testing.txt | grep -E "senpai" | grep -v "^ *<a" | sed -E 's/^ *.*title=\"//g' | sed -E 's/\" *class.*$//g'
