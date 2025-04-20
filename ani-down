@@ -10,6 +10,9 @@ startup() {
 \____|__  /___|  /__|         /_______  /\\____/ \\/\\_/|___|  /
         \\/     \\/                     \\/                  \\/ 
 ═════════════════════════════════════════════════════════════${RESET}"
+    echo
+    echo -n -e "${RED}Press Enter to start ... ${RESET}"
+    read -p ""
     action
 }
 
@@ -167,6 +170,7 @@ BOLD='\033[1m'
 BLACK='\033[30m'
 WHITE='\033[37m'
 BLUE='\033[34m'
+RED='\033[31m'
 
 startup
 
@@ -174,3 +178,6 @@ clear
 # ➜  ani-down cat testing.txt | grep -E "senpai" | grep -v "^ *<a" | sed -E 's/^ *.*title=\"//g' | sed -E 's/\" *class.*$//g'
 # Seishun Buta Yarou wa Bunny Girl Senpai no Yume wo Minai Picture Drama
 # Rascal Does Not Dream of Bunny Girl Senpai
+
+
+# cat bgs_info_test| grep "name=\"twitter:card\" content=\"summary\"><meta name=\"twitter:site\"" | sed -E 's/^.*<meta property="og:title" content=\"/\nJapanese romaji title = /g;s/\"><meta property=\"og:type\" content=\"video.tv_show\".*og:description\" content=\"/\n\nDescription = /g;s/\">//g'
