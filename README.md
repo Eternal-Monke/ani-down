@@ -1,22 +1,25 @@
-# 🎬 Ani-Down — Your Ultimate Anime Downloader 🎥
+# 🎬 Ani-Down — Your Ultimate Anime & Manga CLI Hub 🎥📚
 
 <div align="center">
   <p>
 <!--     <img src="(link here)" alt="Ani-Down Logo" width="180" /> -->
   </p>
-  <h3>Streamline your anime binge — effortless, fast, and open-source.</h3>
+  <h3>All-in-one anime & manga tool: download, stream, and explore — right from your terminal!</h3>
 </div>
 
 ---
 
-## ✨ Features
+## ✨ Project Vision
+Ani-Down aims to be a comprehensive command-line tool for anime and manga lovers, providing:
+- 🔍 **Anime Info Search:** Instantly fetch detailed information about any anime.
+- 🎬 **Anime Streaming:** Stream anime episodes directly from your terminal.
+- 📥 **Anime Downloading:** Download anime episodes or entire series for offline viewing.
+- 📚 **Manga Downloading:** Download manga chapters to read offline.
+- 🛠️ **Lightweight Shell Script:** No heavy dependencies or GUIs.
+- ⚡ **Fast & Efficient:** Optimized for speed and minimal resource use.
 
-- 🔍 **Search & Fetch** anime metadata and episodes effortlessly  
-- 📥 **Download** episodes directly from reliable sources  
-- 🛠️ **Lightweight Shell Script** — no heavy dependencies or GUIs  
-- 🎯 **Customizable** for your preferred sources and quality  
-- 🔒 **Privacy-first** — no tracking, no ads, just pure downloading  
-- ⚡ **Fast & Efficient** — optimized for speed and minimal resource use  
+> #### **Note:**
+> These features are currently under development. The project is in an early stage and not all functionality is implemented yet.
 
 ---
 
@@ -26,6 +29,7 @@
 
 - Bash shell (Linux/macOS/WSL)
 - `curl` installed
+- fzf for interactive selection
 - Git (optional, for cloning the repo)
 
 ---
@@ -42,7 +46,7 @@ Clone the repository
 ### Make the script executable
 
 ```
-  $ chmod +x ani-down.sh
+  $ chmod +x ani-down
 ```
 
 ---
@@ -50,21 +54,20 @@ Clone the repository
 ### Usage
 
 ```
-  $ ./ani-down.sh
+  $ ./ani-down
 ```
 
-- Follow the interactive prompts to search for your favorite anime.
-- Choose subtitle or dub versions.
-- Select episodes to download with your preferred quality.
+- Follow interactive prompts to explore anime info, stream, or download anime/manga (as features are implemented).
 
 ---
 
-## 🧩 How It Works
+## 🧩 How It Works (Planned)
 
 Ani-Down uses curated anime sources that provide direct download links accessible via shell scripting. It leverages:
 
 - **`curl`** for HTTP requests and fetching metadata  
-- Intelligent parsing to extract video links without JavaScript dependencies  
+- fzf for fuzzy, interactive selection
+- Intelligent parsing to extract video/manga links without JavaScript dependencies
 
 ---
 
@@ -99,5 +102,5 @@ For questions or suggestions, open an issue or reach out on GitHub.
 ---
 
 <div align="center">
-  <sub>Anime is life. Download responsibly and support official releases where possible.</sub>
+  <sub>Anime & manga are best enjoyed responsibly. Support official releases whenever possible.</sub>
 </div>
