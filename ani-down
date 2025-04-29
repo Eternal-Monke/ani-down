@@ -105,35 +105,97 @@ stream_anime() {
 
 anime_info() {
     clear
-    echo -n -e "${BOLD}${BLUE}Enter anime name: ${RESET}"
-    read -r anime_name
-    anime_name=$(echo ${anime_name} | sed -E 's/ /+/g')
-    result_number=0
+    echo -ne "${BLUE}Enter anime name: ${RESET}"
+    read -r query
+    if test -z "$query"
+    then
+        echo "No query entered."
+        exit 1
+    fi
 
-    while true
-    do
-        anime_search="${MAL_base}anime.php?q=${anime_name}&cat=anime&show=${result_number}"
+    search_json=$(curl -s -G "https://kitsu.io/api/edge/anime" \
+        --data-urlencode "filter[text]=$query" \
+        --data-urlencode "page[limit]=20" \
+        -H "Accept: application/vnd.api+json")
 
-        links=$(curl -s "${anime_search}" | grep -E "      <a class=\"hoverinfo_trigger\" href=\"" | sed -E 's/^.*href=\"//g' | sed -E 's/\" id=\".*$//g')
-        content=$(echo "${links}" | sed -E 's#^.*[0-9]+/##g')
+    count=$(echo "$search_json" | jq '.data | length')
+    if test "$count" -eq 0
+    then
+        echo "No results found."
+        exit 1
+    fi
 
-        options=$(echo -e "${content}\nNext page")
-        selected=$(echo -e "${options}" | fzf --layout=reverse --prompt="Pick your anime: ")
+    titles_ids=$(echo "$search_json" | jq -r '.data[] | [.attributes.canonicalTitle, .id] | @tsv')
+    selected_title=$(echo "$titles_ids" | cut -f1 | fzf --reverse --prompt="Select anime: ")
 
+    if test -z "$selected_title"
+    then
+        echo "No anime selected."
+        exit 1
+    fi
+    anime_id=$(echo "$titles_ids" | awk -F'\t' -v name="$selected_title" '$1 == name {print $2; exit}')
 
-        if ! [[ "$selected" == "Next page" ]]
-        then
-            break
-        fi
+    anime_json=$(curl -s "https://kitsu.io/api/edge/anime/$anime_id" -H "Accept: application/vnd.api+json")
 
-        result_number=$((result_number + 50))
-    done
+    attr='.data.attributes'
+    title=$(echo "$anime_json" | jq -r "$attr.canonicalTitle // \"N/A\"")
+    jp_title=$(echo "$anime_json" | jq -r "$attr.titles.ja_jp // \"N/A\"")
+    en_title=$(echo "$anime_json" | jq -r "$attr.titles.en // \"N/A\"")
+    synopsis=$(echo "$anime_json" | jq -r "$attr.synopsis // \"N/A\"")
+    avg_rating=$(echo "$anime_json" | jq -r "$attr.averageRating // \"N/A\"")
+    rating_rank=$(echo "$anime_json" | jq -r "$attr.ratingRank // \"N/A\"")
+    popularity_rank=$(echo "$anime_json" | jq -r "$attr.popularityRank // \"N/A\"")
+    start_date=$(echo "$anime_json" | jq -r "$attr.startDate // \"N/A\"")
+    end_date=$(echo "$anime_json" | jq -r "$attr.endDate // \"N/A\"")
+    status=$(echo "$anime_json" | jq -r "$attr.status // \"N/A\"")
+    subtype=$(echo "$anime_json" | jq -r "$attr.subtype // \"N/A\"")
+    episode_count=$(echo "$anime_json" | jq -r "$attr.episodeCount // \"N/A\"")
+    episode_length=$(echo "$anime_json" | jq -r "$attr.episodeLength // \"N/A\"")
+    age_rating=$(echo "$anime_json" | jq -r "$attr.ageRating // \"N/A\"")
+    age_guide=$(echo "$anime_json" | jq -r "$attr.ageRatingGuide // \"N/A\"")
+    nsfw=$(echo "$anime_json" | jq -r "$attr.nsfw // false")
+    poster=$(echo "$anime_json" | jq -r "$attr.posterImage.original // \"N/A\"")
+    cover=$(echo "$anime_json" | jq -r "$attr.coverImage.original // \"N/A\"")
+    youtube=$(echo "$anime_json" | jq -r "$attr.youtubeVideoId // empty")
+    youtube_url=""
+    [ -n "$youtube" ] && youtube_url="https://youtube.com/watch?v=$youtube"
 
-    echo "You selected: ${selected}"
-    chosen_anime_link=$(echo "${links}" | grep -E "${selected}")
-    echo "The link for that is: ${}"
-
+    # Print info in a neat format
+    clear
+    echo "────────────────────────────────────────────────────────────"
+    echo -e "${BOLD}${CYAN}${title}${RESET}"
+    echo "────────────────────────────────────────────────────────────"
+    if test "$en_title" != "N/A"
+    then
+        echo -e "${BOLD}${BLUE}English Title   :${RESET} $en_title"
+    fi
+    if test "$jp_title" != "N/A"
+    then
+        echo -e "${BOLD}${BLUE}Japanese Title  :${RESET} $jp_title"
+    fi
+    echo -e "${BOLD}${BLUE}Type            :${RESET} $subtype"
+    echo -e "${BOLD}${BLUE}Status          :${RESET} $status"
+    echo -e "${BOLD}${BLUE}Episodes        :${RESET} $episode_count"
+    echo -e "${BOLD}${BLUE}Episode Length  :${RESET} $episode_length min"
+    echo -e "${BOLD}${BLUE}Airing          :${RESET} $start_date to $end_date"
+    echo -e "${BOLD}${BLUE}Average Rating  :${RESET} $avg_rating"
+    echo -e "${BOLD}${BLUE}Rating Rank     :${RESET} $rating_rank"
+    echo -e "${BOLD}${BLUE}Popularity Rank :${RESET} $popularity_rank"
+    echo -e "${BOLD}${BLUE}Age Rating      :${RESET} $age_rating ($age_guide)"
+    echo -e "${BOLD}${BLUE}NSFW            :${RESET} $nsfw"
+    echo -e "${BOLD}${BLUE}Poster Image    :${RESET} $poster"
+    echo -e "${BOLD}${BLUE}Cover Image     :${RESET} $cover"
+    if test -n "$youtube_url"
+    then
+        echo -e "${BOLD}${BLUE}Trailer         :${RESET} $youtube_url"
+    fi
+    echo "────────────────────────────────────────────────────────────"
+    echo -e "${BOLD}${BLUE}Synopsis:${RESET}"
+    echo "$synopsis"
+    echo "────────────────────────────────────────────────────────────"
 }
+
+
 
 search() {
     echo
