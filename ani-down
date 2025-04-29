@@ -62,7 +62,7 @@ sub_check() {
 
 action() {
     echo
-    option=$(echo -n -e "Search info about anime\nSearch for anime character\nStream anime\nDownload anime\nExit" | fzf --layout=reverse --prompt="Enter Option ('h' for help): ")
+    option=$(echo -n -e "Search info about anime\nSearch for anime character\nStream anime\nDownload anime\nAnime girl\nExit" | fzf --layout=reverse --prompt="Enter Option ('h' for help): ")
     case "$option" in
         "Search info about anime")
             anime_info
@@ -76,6 +76,9 @@ action() {
         "Download anime")
             download_anime
             ;;
+        "Anime girl")
+            waifu_pics
+            ;;
         "Exit")
             echo "Goodbye!"
             exit 0
@@ -85,6 +88,29 @@ action() {
             ;;
     esac
     exit 0
+}
+
+waifu_pics() {
+    clear
+    category=$(echo -e "waifu\nneko\nshinobu\nmegumin\nbully\ncuddle\ncry\nhug\nawoo\nkiss\nlick\npat\nsmug\nbonk\nyeet\nblush\nsmile\nwave\nhighfive\nhandhold\nnom\nbite\nglomp\nslap\nkill\nkick\nhappy\nwink\npoke\ndance\ncringe"| fzf --layout=reverse --prompt="Pick your category: ")
+
+    while true
+    do
+        option=$(echo -e "Reload\nDownload\nExit" | fzf --layout=reverse --prompt="Pick an option: " --preview="curl -s https://api.waifu.pics/sfw/${category} | jq -r .url | xargs -I{} curl -s \"{}\" | viu -t -" --preview-window=right:50%:wrap)
+
+        case "${option}" in
+            Reload)
+                continue
+                ;;
+            Download)
+                break
+                ;;
+            Exit|"")
+                break
+                ;;
+        esac
+    done
+
 }
 
 stream_anime() {
@@ -274,69 +300,3 @@ clear
 
 
 
-# local API="https://api.allanime.day/api"
-
-#     echo -ne "Enter anime name: "
-#     read -r query
-#     [ -z "$query" ] && echo "No query entered." && return 1
-
-#     search_json=$(curl -s "$API" \
-#       -H 'Content-Type: application/json' \
-#       --data-raw '{
-#         "variables":{
-#           "search":{"query":"'"$query"'"},
-#           "limit":50,
-#           "page":1
-#         },
-#         "query":"query ($search: SearchInput, $limit: Int, $page: Int) { shows(search: $search, limit: $limit, page: $page) { edges { _id name englishName } } }"
-#       }')
-
-#     if echo "$search_json" | jq -e '.errors' >/dev/null; then
-#         echo "API error:"
-#         echo "$search_json" | jq
-#         return 1
-#     fi
-
-#     ids_titles=$(echo "$search_json" | jq -r '.data.shows.edges[] | [(.englishName // .name), (._id)] | @tsv')
-#     [ -z "$ids_titles" ] && echo "No results found." && return 1
-#     selected=$(echo "$ids_titles" | cut -f1 | fzf --layout=reverse --prompt="Select anime: ")
-#     [ -z "$selected" ] && echo "No anime selected." && return 1
-#     anime_id=$(echo "$ids_titles" | awk -F'\t' -v name="$selected" '$1 == name {print $2; exit}')
-
-#     episodes_json=$(curl -s "$API" \
-#         -H 'Content-Type: application/json' \
-#         --data-raw '{
-#             "variables":{
-#                 "showId":"'"$anime_id"'"
-#             },
-#             "query":"query ($showId: String!) { show(_id: $showId) { availableEpisodesDetail } }"
-#         }')
-
-#     episodes=$(echo "$episodes_json" | jq -r '.data.show.availableEpisodesDetail | keys[]' | sort -n)
-#     [ -z "$episodes" ] && echo "No episodes found." && return 1
-#     episode=$(echo "$episodes" | fzf --prompt="Select episode: ")
-#     [ -z "$episode" ] && echo "No episode selected." && return 1
-
-#     sources_json=$(curl -s "$API" \
-#       -H 'Content-Type: application/json' \
-#       --data-raw '{
-#         "variables":{
-#           "showId":"'"$anime_id"'",
-#           "translationType":"sub",
-#           "episodeString":"'"$episode"'"
-#         },
-#         "query":"query ($showId: String!, $translationType: VaildTranslationTypeEnumType!, $episodeString: String!) { episode(showId: $showId, translationType: $translationType, episodeString: $episodeString) { sourceUrls { sourceName sourceUrl } } }"
-#       }')
-
-#     if echo "$sources_json" | jq -e '.errors' >/dev/null; then
-#         echo "API error:"
-#         echo "$sources_json" | jq
-#         return 1
-#     fi
-
-#     links=$(echo "$sources_json" | jq -r '.data.episode.sourceUrls[] | "\(.sourceName): \(.sourceUrl)"')
-#     [ -z "$links" ] && echo "No sources found." && return 1
-#     link=$(echo "$links" | fzf --prompt="Select source: " | awk -F': ' '{print $2}')
-#     [ -z "$link" ] && echo "No source selected." && return 1
-
-#     echo "Selected video link: $link"
