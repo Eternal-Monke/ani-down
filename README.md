@@ -90,7 +90,7 @@ Feel free to fork the repo and submit pull requests.
 
 ## 📜 License
 
-Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
+Distributed under the **GPL-3.0 License**. See [LICENSE](LICENSE) for more information.
 
 ---
 
